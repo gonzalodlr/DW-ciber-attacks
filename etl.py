@@ -63,23 +63,48 @@ df['minute'] = df['Datetime'].dt.minute
 df['second'] = df['Datetime'].dt.second
 
 # Transform 'Device Browser' from 'Device Information'
-df['Browser'] = df['Device Information'].str.split('/').str[0]
+df['Browser'] = df['Device Information'].str.split('/').str[0].astype(pd.StringDtype())
 
 # Transform 'Device' from 'Device Information'
-df['Targeted Device'] = df['Device Information'].apply(device_identifier)
+df['Targeted Device'] = df['Device Information'].apply(device_identifier).astype(pd.StringDtype())
 df['Targeted Device'].unique()
 
+# Transformar objetos a tipos para introducir en la base de datos
+df['Source IP Address'] = df['Source IP Address'].astype(pd.StringDtype())
+df['Destination IP Address'] = df['Destination IP Address'].astype(pd.StringDtype())
+df['Protocol'] = df['Protocol'].astype(pd.StringDtype())
+df['Packet Type'] = df['Packet Type'].astype(pd.StringDtype())
+df['Traffic Type'] = df['Traffic Type'].astype(pd.StringDtype())
+#df['Payload'] = df['Payload'].astype(pd.StringDtype())
+df['Malware Indicators'] = df['Malware Indicators'].astype(pd.StringDtype())
+df['Alerts/Warnings'] = df['Alerts/Warnings'].astype(pd.StringDtype())
+df['Attack Signature'] = df['Attack Signature'].astype(pd.StringDtype())
+df['Action Taken'] = df['Action Taken'].astype(pd.StringDtype())
+#df['Security Level'] = df['Security Level'].astype(pd.StringDtype())
+df['User Information'] = df['User Information'].astype(pd.StringDtype())
+#df['Device Information'] = df['Device Information'].astype(pd.StringDtype())
+df['Network Segment'] = df['Network Segment'].astype(pd.StringDtype())
+df['Geo-location Data'] = df['Geo-location Data'].astype(pd.StringDtype())
+df['Proxy Information'] = df['Proxy Information'].astype(pd.StringDtype())
+df['Firewall Logs'] = df['Firewall Logs'].astype(pd.StringDtype())
+df['IDS/IPS Alerts'] = df['IDS/IPS Alerts'].astype(pd.StringDtype())
+df['Log Source'] = df['Log Source'].astype(pd.StringDtype())
+
+
 # Transform 'Source IP Address' and 'Destination IP Address' to 'IP Type'
-df['Source IP Type'] = df['Source IP Address'].apply(lambda x: "Private" if ipaddress.ip_address(x).is_private else "Public")
-df['Destiantion IP Type'] = df['Destination IP Address'].apply(lambda x: "Private" if ipaddress.ip_address(x).is_private else "Public")
+df['Source IP Type'] = df['Source IP Address'].apply(lambda x: "Private" if ipaddress.ip_address(x).is_private else "Public").astype(pd.StringDtype())
+df['Destiantion IP Type'] = df['Destination IP Address'].apply(lambda x: "Private" if ipaddress.ip_address(x).is_private else "Public").astype(pd.StringDtype())
 
 df['Source First IP'] = df['Source IP Address'].apply(extract_ip)
 df['Destination First IP'] = df['Destination IP Address'].apply(extract_ip)
 df['Source First IP'] = df['Source First IP'].astype(int)
 df['Destination First IP'] = df['Destination First IP'].astype(int)
 
-#print(df.info())
+# Print information about the dataframe
+print(df.info())
+# Print columns of type object
+print('----------------------------------------------------------')
 #print(df)
 # Threat Trend
 print('----------------------------------------------------------')
-print(df.head(1).T)
+print(df.head(4).T)

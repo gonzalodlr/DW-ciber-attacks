@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 cybersecurity_attacks.csv
+.env
 
 # C extensions
 *.so
