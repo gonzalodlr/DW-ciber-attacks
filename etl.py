@@ -4,11 +4,9 @@ import pandas as pd
 #import plotly.graph_objects as go
 #import folium
 #from folium import Marker
-import os
 import re
 #import seaborn as sns
 import ipaddress
-
 
 def extract_ip(ip):
     return ip.split('.')[0]
@@ -31,11 +29,31 @@ devices = [
     r'Android'
 ]
 
+# Load the dataset
 df = pd.read_csv("cybersecurity_attacks.csv")
-print(df.head(1).T)
 
+# Imprimir 1 ejemplo del dataset
+#print(df.head(1).T)
+
+# Check for missing values
+#print(df.isnull().sum().sort_values(ascending=False))
+
+# Transform the data
+missing_columns = ['Alerts/Warnings', 'IDS/IPS Alerts', 'Malware Indicators', 'Firewall Logs', 'Proxy Information']
+
+# fill missing values 
+fillvalues = ['None', 'No Data', 'No Detected', 'No Data', 'No Proxy Data']
+for i in range(len(fillvalues)):
+    df.fillna({missing_columns[i]: fillvalues[i]}, inplace=True)
+
+# Check for missing values
+#print(df.isnull().sum().sort_values(ascending=False))
+
+# Rename columns for better understanding
 df.rename(columns={'Timestamp':'Datetime'}, inplace=True)
 df['Datetime'] = df['Datetime'].apply(lambda x: pd.to_datetime(x))
+
+# Transform time information to new columns of the dataframe
 df['year'] = df['Datetime'].dt.year
 df['month'] = df['Datetime'].dt.month
 df['day'] = df['Datetime'].dt.day
@@ -44,16 +62,14 @@ df['hour'] = df['Datetime'].dt.hour
 df['minute'] = df['Datetime'].dt.minute
 df['second'] = df['Datetime'].dt.second
 
+# Transform 'Device Browser' from 'Device Information'
+df['Browser'] = df['Device Information'].str.split('/').str[0]
+
+# Transform 'Device' from 'Device Information'
 df['Targeted Device'] = df['Device Information'].apply(device_identifier)
 df['Targeted Device'].unique()
 
-missing_columns = ['Alerts/Warnings', 'IDS/IPS Alerts', 'Malware Indicators', 'Firewall Logs', 'Proxy Information']
-
-# fill missing values 
-fillvalaues = ['None', 'No Data', 'No Detected', 'No Data', 'No Proxy Data']
-for i in range(len(fillvalaues)):
-    df.fillna({missing_columns[i]: fillvalaues[i]}, inplace=True)
-
+# Transform 'Source IP Address' and 'Destination IP Address' to 'IP Type'
 df['Source IP Type'] = df['Source IP Address'].apply(lambda x: "Private" if ipaddress.ip_address(x).is_private else "Public")
 df['Destiantion IP Type'] = df['Destination IP Address'].apply(lambda x: "Private" if ipaddress.ip_address(x).is_private else "Public")
 
