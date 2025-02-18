@@ -1,12 +1,10 @@
 # import librarys
+import pyodbc
 import pandas as pd
-#from matplotlib import pyplot as plt
-#import plotly.graph_objects as go
-#import folium
-#from folium import Marker
+from sqlalchemy import create_engine
 import re
-#import seaborn as sns
 import ipaddress
+
 
 def extract_ip(ip):
     return ip.split('.')[0]
@@ -108,3 +106,26 @@ print('----------------------------------------------------------')
 # Threat Trend
 print('----------------------------------------------------------')
 print(df.head(4).T)
+
+
+# Conexión con SQL Server
+print('----------------------------------------------------------')
+# Datos de conexión (modificar según configuración)
+server = 'localhost'  # O el nombre de tu servidor SQL Server
+database = 'CyberSecurityDB'
+username = 'sa'  # Usuario de SQL Server (si usas autenticación SQL)
+password = 'tu_contraseña'
+
+# Conexión con SQL Server usando pyodbc
+conn_str = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}"
+engine = create_engine(f"mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server")
+
+# Prueba de conexión
+try:
+    with pyodbc.connect(conn_str) as conn:
+        print("Conexión exitosa a SQL Server")
+except Exception as e:
+    print(f"Error al conectar: {e}")
+
+# Cargar los datos de pd a SQL Server
+df.to_sql('CyberSecurityAttacks', engine, if_exists='replace', index=False)
