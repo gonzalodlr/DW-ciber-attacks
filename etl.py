@@ -48,34 +48,36 @@ def insert_fact_table(df):
     batch_data = []
     
     for index, row in df.iterrows():
-        print("[",index, "39999]Insertando en hechos_ataques...")
-        id_origen = get_dimension_id(cursor, 'dim_origen', 'id_origen', 'ip_origen', row['Source IP Address'])
-        id_destino = get_dimension_id(cursor, 'dim_destino', 'id_destino', 'ip_destino', row['Destination IP Address'])
-        id_protocolo = get_dimension_id(cursor, 'dim_protocolo', 'id_protocolo', 'protocolo', row['Protocol'])
-        id_tipo_trafico = get_dimension_id(cursor, 'dim_tipo_trafico', 'id_tipo_trafico', 'tipo_trafico', row['Traffic Type'])
-        id_malware = get_dimension_id(cursor, 'dim_malware', 'id_malware', 'indicador_malware', row['Malware Indicators'])
-        id_anomalia = get_dimension_id(cursor, 'dim_anomalia', 'id_anomalia', 'score_anomalia', row['Anomaly Scores'])
-        id_severidad = get_dimension_id(cursor, 'dim_severidad', 'id_severidad', 'nivel_severidad', row['Severity Level'])
-        id_dispositivo = get_dimension_id(cursor, 'dim_dispositivo', 'id_dispositivo', 'tipo_dispositivo', row['Targeted Device'])
-        id_segmento = get_dimension_id(cursor, 'dim_segmento', 'id_segmento', 'segmento', row['Network Segment'])
-        id_geo = get_dimension_id(cursor, 'dim_geo', 'id_geo', 'ubicacion', row['Geo-location Data'])
+        if index % 500 == 0:
+            print(f"⏳ Procesando fila {index}...")
         
-        if None not in (id_origen, id_destino, id_protocolo, id_tipo_trafico, id_malware, id_anomalia, id_severidad, id_dispositivo, id_segmento, id_geo):
-            batch_data.append((row['Datetime'], id_origen, id_destino, id_protocolo, id_tipo_trafico, id_malware, id_anomalia, id_severidad, id_dispositivo, id_segmento, id_geo, row['Packet Length'], row['Alerts/Warnings']))
+        ids = {
+            "id_origen": get_dimension_id(cursor, 'dim_origen', 'id_origen', 'ip_origen', row['Source IP Address']),
+            "id_destino": get_dimension_id(cursor, 'dim_destino', 'id_destino', 'ip_destino', row['Destination IP Address']),
+            "id_protocolo": get_dimension_id(cursor, 'dim_protocolo', 'id_protocolo', 'protocolo', row['Protocol']),
+            "id_tipo_trafico": get_dimension_id(cursor, 'dim_tipo_trafico', 'id_tipo_trafico', 'tipo_trafico', row['Traffic Type']),
+            "id_malware": get_dimension_id(cursor, 'dim_malware', 'id_malware', 'indicador_malware', row['Malware Indicators']),
+            "id_anomalia": get_dimension_id(cursor, 'dim_anomalia', 'id_anomalia', 'score_anomalia', row['Anomaly Scores']),
+            "id_severidad": get_dimension_id(cursor, 'dim_severidad', 'id_severidad', 'nivel_severidad', row['Severity Level']),
+            "id_dispositivo": get_dimension_id(cursor, 'dim_dispositivo', 'id_dispositivo', 'tipo_dispositivo', row['Targeted Device']),
+            "id_segmento": get_dimension_id(cursor, 'dim_segmento', 'id_segmento', 'segmento', row['Network Segment']),
+            "id_geo": get_dimension_id(cursor, 'dim_geo', 'id_geo', 'ubicacion', row['Geo-location Data'])
+        }
+        
+        if None not in ids.values():
+            batch_data.append((row['Datetime'], *ids.values(), row['Packet Length'], row['Alerts/Warnings']))
     
     if batch_data:
+        print("⏳ Insertando datos en hechos_ataques...")
         cursor.executemany("""
             INSERT INTO hechos_ataques (timestamp, id_origen, id_destino, id_protocolo, id_tipo_trafico, id_malware, id_anomalia, id_severidad, id_dispositivo, id_segmento, id_geo, longitud_paquete, numero_alertas)
-            SELECT * FROM (SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) AS tmp
-            WHERE NOT EXISTS (
-                SELECT 1 FROM hechos_ataques WHERE timestamp = %s AND id_origen = %s AND id_destino = %s AND id_protocolo = %s
-            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, batch_data)
     
     conn.commit()
     cursor.close()
     conn.close()
-
+    print("✅ Carga de hechos completada.")
 
 def comprobar_crear_db():
     # Conectar con MySQL
