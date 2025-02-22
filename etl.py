@@ -2,6 +2,157 @@
 import pandas as pd
 import re
 import ipaddress
+import mysql.connector
+
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="root"
+)
+cursor = conn.cursor()
+
+# **2️⃣ Verificar si la base de datos ya existe**
+cursor.execute("SHOW DATABASES")
+databases = [db[0] for db in cursor.fetchall()]
+
+db_name = "ciberseguridad_db"
+
+
+if "ciberseguridad_db" not in databases:
+    print("🚀 La base de datos 'ciberseguridad_db' no existe. Creándola ahora...")
+
+    # **Crear la base de datos**
+    #cursor.execute("CREATE DATABASE ciberseguridad_db")
+    cursor.execute("CREATE DATABASE ciberseguridad_db")
+    print("✅ Base de datos 'ciberseguridad_db' creada exitosamente.")
+
+    # **Conectarse a la base de datos recién creada**
+    #conn.database = "ciberseguridad_db"
+    conn.database = "ciberseguridad_db"
+
+    # **Crear las tablas**
+    print("📦 Creando tablas en 'ciberseguridad_db'...")
+
+    cursor.execute("""
+        CREATE TABLE dim_origen (
+            id_origen INT AUTO_INCREMENT PRIMARY KEY,
+            ip_origen VARCHAR(50),
+            puerto_origen INT,
+            proxy VARCHAR(255),
+            usuario VARCHAR(255)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE dim_destino (
+            id_destino INT AUTO_INCREMENT PRIMARY KEY,
+            ip_destino VARCHAR(50),
+            puerto_destino INT,
+            dispositivo VARCHAR(255)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE dim_protocolo (
+            id_protocolo INT AUTO_INCREMENT PRIMARY KEY,
+            protocolo VARCHAR(50)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE dim_tipo_trafico (
+            id_tipo_trafico INT AUTO_INCREMENT PRIMARY KEY,
+            tipo_trafico VARCHAR(50)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE dim_malware (
+            id_malware INT AUTO_INCREMENT PRIMARY KEY,
+            indicador_malware VARCHAR(255)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE dim_anomalia (
+            id_anomalia INT AUTO_INCREMENT PRIMARY KEY,
+            score_anomalia FLOAT
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE dim_severidad (
+            id_severidad INT AUTO_INCREMENT PRIMARY KEY,
+            nivel_severidad VARCHAR(50)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE dim_dispositivo (
+            id_dispositivo INT AUTO_INCREMENT PRIMARY KEY,
+            tipo_dispositivo VARCHAR(255)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE dim_segmento (
+            id_segmento INT AUTO_INCREMENT PRIMARY KEY,
+            segmento VARCHAR(255)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE dim_geo (
+            id_geo INT AUTO_INCREMENT PRIMARY KEY,
+            ubicacion VARCHAR(255)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE hechos_ataques (
+            id_ataque INT AUTO_INCREMENT PRIMARY KEY,
+            timestamp DATETIME NOT NULL,
+            id_origen INT,
+            id_destino INT,
+            id_protocolo INT,
+            id_tipo_trafico INT,
+            id_malware INT,
+            id_anomalia INT,
+            id_severidad INT,
+            id_dispositivo INT,
+            id_segmento INT,
+            id_geo INT,
+            longitud_paquete INT,
+            numero_alertas INT,
+            FOREIGN KEY (id_origen) REFERENCES dim_origen(id_origen),
+            FOREIGN KEY (id_destino) REFERENCES dim_destino(id_destino),
+            FOREIGN KEY (id_protocolo) REFERENCES dim_protocolo(id_protocolo),
+            FOREIGN KEY (id_tipo_trafico) REFERENCES dim_tipo_trafico(id_tipo_trafico),
+            FOREIGN KEY (id_malware) REFERENCES dim_malware(id_malware),
+            FOREIGN KEY (id_anomalia) REFERENCES dim_anomalia(id_anomalia),
+            FOREIGN KEY (id_severidad) REFERENCES dim_severidad(id_severidad),
+            FOREIGN KEY (id_dispositivo) REFERENCES dim_dispositivo(id_dispositivo),
+            FOREIGN KEY (id_segmento) REFERENCES dim_segmento(id_segmento),
+            FOREIGN KEY (id_geo) REFERENCES dim_geo(id_geo)
+        )
+    """)
+    cursor.execute("SHOW TABLES")
+    tables = cursor.fetchall()
+    print("📋 Tablas en la base de datos:")
+    for table in tables:
+        print(table[0])
+
+    
+
+    print("✅ Tablas creadas exitosamente en 'ciberseguridad_db'.")
+    conn.commit()
+
+else:
+    print("✅ La base de datos 'ciberseguridad_db' ya existe. Continuando con el proceso de ETL...")
+
+
+conn.database = "ciberseguridad_db"
+cursor = conn.cursor()
 
 # Función para extraer la primera parte de la IP
 def extract_ip(ip):
@@ -26,6 +177,7 @@ devices = [r'Windows', r'Macintosh', r'Linux', r'iPhone', r'iPod', r'iPad', r'An
 
 # Cargar el dataset
 df = pd.read_csv("cybersecurity_attacks.csv")
+
 
 # Imprimir información general del dataset
 print("Valores nulos antes de la limpieza:")
@@ -108,17 +260,15 @@ print(df.head(4).T)
 
 df = pd.read_csv("cybersecurity_attacks_cleaned.csv")
 
+# # Verifica conexión a MySQL
 
-# Verifica conexión a MySQL
-import mysql.connector
-
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="root",
-    database="ciberseguridad_db"
-)
-cursor = conn.cursor()
+# conn = mysql.connector.connect(
+#     host="localhost",
+#     user="root",
+#     password="root",
+#     database="ciberseguridad_db"
+# )
+# cursor = conn.cursor()
 
 # Insertar en dim_origen
 cursor.executemany("""
