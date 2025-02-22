@@ -1,9 +1,10 @@
-# Importar librerías necesarias
 import pandas as pd
 import re
 import ipaddress
 import mysql.connector
 
+
+# Conectar con MySQL
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -11,27 +12,23 @@ conn = mysql.connector.connect(
 )
 cursor = conn.cursor()
 
-# **2️⃣ Verificar si la base de datos ya existe**
+# Verificar si la base de datos ya existe
 cursor.execute("SHOW DATABASES")
 databases = [db[0] for db in cursor.fetchall()]
 
-db_name = "ciberseguridad_db"
-
-
 if "ciberseguridad_db" not in databases:
-    print("🚀 La base de datos 'ciberseguridad_db' no existe. Creándola ahora...")
+    print("La base de datos 'ciberseguridad_db' no existe. Creándola ahora...")
 
     # **Crear la base de datos**
     #cursor.execute("CREATE DATABASE ciberseguridad_db")
     cursor.execute("CREATE DATABASE ciberseguridad_db")
-    print("✅ Base de datos 'ciberseguridad_db' creada exitosamente.")
+    print("✅ Base de datos 'ciberseguridad_db' creada con éxito.")
 
     # **Conectarse a la base de datos recién creada**
-    #conn.database = "ciberseguridad_db"
     conn.database = "ciberseguridad_db"
 
     # **Crear las tablas**
-    print("📦 Creando tablas en 'ciberseguridad_db'...")
+    print("Creando tablas en 'ciberseguridad_db'...")
 
     cursor.execute("""
         CREATE TABLE dim_origen (
@@ -144,7 +141,7 @@ if "ciberseguridad_db" not in databases:
 
     
 
-    print("✅ Tablas creadas exitosamente en 'ciberseguridad_db'.")
+    print("✅ Tablas creadas con éxito en 'ciberseguridad_db'.")
     conn.commit()
 
 else:
@@ -259,16 +256,6 @@ print("\nPrimeras filas del DataFrame limpio:")
 print(df.head(4).T)
 
 df = pd.read_csv("cybersecurity_attacks_cleaned.csv")
-
-# # Verifica conexión a MySQL
-
-# conn = mysql.connector.connect(
-#     host="localhost",
-#     user="root",
-#     password="root",
-#     database="ciberseguridad_db"
-# )
-# cursor = conn.cursor()
 
 # Insertar en dim_origen
 cursor.executemany("""
