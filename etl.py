@@ -8,7 +8,7 @@ import mysql.connector
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="root"
+    password="gonzalo"
 )
 cursor = conn.cursor()
 
@@ -265,10 +265,11 @@ cursor.executemany("""
 print("✅ Datos insertados en dim_origen")
 
 # Insertar en dim_destino
-cursor.executemany("""
-    INSERT IGNORE INTO dim_destino (ip_destino, puerto_destino, dispositivo) 
-    VALUES (%s, %s, %s)
-""", df[['Destination IP Address', 'Destination Port', 'Device Information']].drop_duplicates().values.tolist())
+for index, row in df[['Destination IP Address', 'Destination Port', 'Device Information']].drop_duplicates().iterrows():
+    cursor.execute("""
+        INSERT IGNORE INTO dim_destino (ip_destino, puerto_destino, dispositivo) 
+        VALUES (%s, %s, %s)
+    """, (row['Destination IP Address'], row['Destination Port'], row['Device Information']))
 print("✅ Datos insertados en dim_destino")
 
 # Insertar en dim_protocolo
