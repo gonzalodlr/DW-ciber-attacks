@@ -2,7 +2,6 @@ import pandas as pd
 import re
 import ipaddress
 import mysql.connector
-from concurrent.futures import ThreadPoolExecutor
 
 def connect_db():
     return mysql.connector.connect(

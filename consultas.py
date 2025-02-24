@@ -49,7 +49,7 @@ def display_results():
     conn = connect_db()
     
     queries = {
-        "🔹 Tráfico más frecuente por protocolo": ("""
+        "Tráfico más frecuente por protocolo": ("""
             SELECT p.protocolo AS Protocolo, COUNT(h.id_ataque) AS Total_Ataques
             FROM hechos_ataques h
             JOIN dim_protocolo p ON h.id_protocolo = p.id_protocolo
@@ -58,7 +58,7 @@ def display_results():
             LIMIT 10;
         """, "Protocolo", "Número de ataques", "bar"),
         
-        "🔹 Direcciones IP de origen con más ataques": ("""
+        "Direcciones IP de origen con más ataques": ("""
             SELECT o.ip_origen AS IP_Origen, COUNT(h.id_ataque) AS Total_Ataques
             FROM hechos_ataques h
             JOIN dim_origen o ON h.id_origen = o.id_origen
@@ -67,7 +67,7 @@ def display_results():
             LIMIT 10;
         """, "Direcciones IP", "Número de ataques", "bar"),
         
-        "🔹 Segmentos de red más atacados": ("""
+        "Segmentos de red más atacados": ("""
             SELECT s.segmento AS Segmento, COUNT(h.id_ataque) AS Total_Ataques
             FROM hechos_ataques h
             JOIN dim_segmento s ON h.id_segmento = s.id_segmento
@@ -75,7 +75,7 @@ def display_results():
             ORDER BY Total_Ataques DESC;
         """, "Segmento de red", "Número de ataques", "bar"),
         
-        "🔹 Ataques por nivel de severidad": ("""
+        "Ataques por nivel de severidad": ("""
             SELECT s.nivel_severidad AS Nivel_Severidad, COUNT(h.id_ataque) AS Total_Ataques
             FROM hechos_ataques h
             JOIN dim_severidad s ON h.id_severidad = s.id_severidad
@@ -83,7 +83,7 @@ def display_results():
             ORDER BY Total_Ataques DESC;
         """, "Nivel de Severidad", "Número de ataques", "pie"),
         
-        "🔹 Promedio de alertas generadas por ataque": ("""
+        "Promedio de alertas generadas por ataque": ("""
             SELECT ROUND(AVG(h.numero_alertas), 2) AS Promedio_Alertas
             FROM hechos_ataques h;
         """, "", "Promedio de alertas", "table")
