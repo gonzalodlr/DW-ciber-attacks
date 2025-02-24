@@ -86,7 +86,16 @@ def display_results():
         "Promedio de alertas generadas por ataque": ("""
             SELECT ROUND(AVG(h.numero_alertas), 2) AS Promedio_Alertas
             FROM hechos_ataques h;
-        """, "", "Promedio de alertas", "table")
+        """, "", "Promedio de alertas", "table"),
+
+        "Ubicaciones geográficas con más ataques": ("""
+            SELECT g.ubicacion AS Ubicacion, COUNT(h.id_ataque) AS Total_Ataques
+            FROM hechos_ataques h
+            JOIN dim_geo g ON h.id_geo = g.id_geo
+            GROUP BY g.ubicacion
+            ORDER BY Total_Ataques DESC
+            LIMIT 10;
+        """, "Ubicación", "Número de ataques", "bar")
     }
     
     for title, (query, xlabel, ylabel, chart_type) in queries.items():
